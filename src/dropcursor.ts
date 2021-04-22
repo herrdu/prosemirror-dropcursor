@@ -17,7 +17,7 @@ import { EditorView } from "prosemirror-view";
 //
 //     class:: ?string
 //     A CSS class name to add to the cursor element.
-export function dropCursor(options: { [key: string]: any } = {}) {
+export function dropCursor(options: { color?: string; width?: number; [key: string]: any } = {}) {
   return new Plugin({
     view(editorView) {
       return new DropCursorView(editorView, options);
@@ -33,9 +33,9 @@ class DropCursorView {
   cursorPos: any;
   element: HTMLElement;
   timeout: any;
-  handlers: Array<{ name: string; handler: (e: MouseEvent) => (e?: MouseEvent) => void }>;
+  handlers: Array<{ name: string; handler: (e?: Event) => void }>;
 
-  constructor(editorView: EditorView, options: { [key: string]: any }) {
+  constructor(editorView: EditorView, options: { color?: string; width?: number; [key: string]: any }) {
     this.editorView = editorView;
     this.width = options.width || 1;
     this.color = options.color || "black";
@@ -45,7 +45,7 @@ class DropCursorView {
     this.timeout = null;
 
     this.handlers = ["dragover", "dragend", "drop", "dragleave"].map((name) => {
-      let handler = (e?: MouseEvent) => this[name](e);
+      let handler = (e?: Event) => this[name](e);
       editorView.dom.addEventListener(name, handler);
       return { name, handler };
     });
@@ -72,7 +72,7 @@ class DropCursorView {
 
   updateOverlay() {
     let $pos = this.editorView.state.doc.resolve(this.cursorPos),
-      rect: any;
+      rect: { left: number; right: number; top: number; bottom: number };
     if (!$pos.parent.inlineContent) {
       let before = $pos.nodeBefore,
         after = $pos.nodeAfter;
